@@ -10,12 +10,12 @@ SEGMENTS = [
 # Show current virtual environment (see http://www.virtualenv.org/)
     'virtual_env',
 
-# Show the current user's username as in ordinary prompts
-    'username',
-
 # Show the machine's hostname. Mostly used when ssh-ing into other machines
     'hostname',
     #'hostname_colorized', # colorize based on a hash of the hostname
+
+# Show the current user's username as in ordinary prompts
+    'username',
 
 # Show the current directory. If the path is too long, the middle part is
 # replaced with ellipsis ('...')
