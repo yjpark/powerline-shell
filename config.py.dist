@@ -12,7 +12,9 @@ SEGMENTS = [
 
 # Show the machine's hostname. Mostly used when ssh-ing into other machines
     'hostname',
-    #'hostname_colorized', # colorize based on a hash of the hostname
+
+# Show a padlock when ssh-ing from another machine
+    'ssh',
 
 # Show the current user's username as in ordinary prompts
     'username',
@@ -20,6 +22,10 @@ SEGMENTS = [
 # Show the current directory. If the path is too long, the middle part is
 # replaced with ellipsis ('...')
     'cwd',
+
+# Show a padlock if the current user has no write access to the current
+# directory
+    'read_only',
 
 # Show the current git branch and status
     'git',
