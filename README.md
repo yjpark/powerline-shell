@@ -5,14 +5,34 @@ A [Powerline](https://github.com/Lokaltog/vim-powerline) like prompt for Bash, Z
 
 ![MacVim+Solarized+Powerline+CtrlP](https://raw.github.com/milkbikis/dotfiles-mac/master/bash-powerline-screenshot.png)
 
-*  Shows some important details about the git/svn/hg/fossil branch:
-    *  Displays the current branch which changes background color when the branch is dirty
-    *  A '+' appears when untracked files are present
-    *  When the local branch differs from the remote, the difference in number of commits is shown along with '⇡' or '⇣' indicating whether a git push or pull is pending
+*  Shows some important details about the git/svn/hg/fossil branch (see below)
 *  Changes color if the last command exited with a failure code
 *  If you're too deep into a directory tree, shortens the displayed path with an ellipsis
 *  Shows the current Python [virtualenv](http://www.virtualenv.org/) environment
 *  It's easy to customize and extend. See below for details.
+
+### Version Control
+
+All of the version control systems supported by powerline shell give you a
+quick look into the state of your repo:
+
+* The current branch is displayed and changes background color when the
+  branch is dirty.
+* When the local branch differs from the remote, the difference in number
+  of commits is shown along with `⇡` or `⇣` indicating whether a git push
+  or pull is pending
+
+In addition, git has a few extra symbols:
+
+* `✎` -- a file has been modified, but not staged for commit
+* `✔` -- a file is staged for commit
+* `✼` -- a file has conflicts
+
+FIXME
+    *  A `+` appears when untracked files are present (except for git, which
+       uses `?` instead)
+
+Each of these will have a number next to it if more than one file matches.
 
 # Setup
 
@@ -49,9 +69,13 @@ setting your $TERM to `xterm-256color`, because that works for me.
 There are a few optional arguments which can be seen by running `powerline-shell.py --help`.
 
 ```
-  --cwd-only            Only show the current directory
+  --cwd-mode {fancy,plain,dironly}
+                        How to display the current directory
   --cwd-max-depth CWD_MAX_DEPTH
                         Maximum number of directories to show in path
+  --cwd-max-dir-size CWD_MAX_DIR_SIZE
+                        Maximum number of letters displayed for each directory
+                        in the path
   --colorize-hostname   Colorize the hostname based on a hash of itself.
   --mode {patched,compatible,flat}
                         The characters used to make separators between
@@ -59,38 +83,48 @@ There are a few optional arguments which can be seen by running `powerline-shell
 ```
 
 ### Bash:
-Add the following to your `.bashrc`:
+Add the following to your `.bashrc` (or `.profile` on Mac):
 
-        function _update_ps1() {
-           export PS1="$(~/powerline-shell.py $? 2> /dev/null)"
-        }
+```
+function _update_ps1() {
+    PS1="$(~/powerline-shell.py $? 2> /dev/null)"
+}
 
-        export PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+if [ "$TERM" != "linux" ]; then
+    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+fi
+```
 
 ### ZSH:
 Add the following to your `.zshrc`:
 
-        function powerline_precmd() {
-          export PS1="$(~/powerline-shell.py $? --shell zsh 2> /dev/null)"
-        }
+```
+function powerline_precmd() {
+    PS1="$(~/powerline-shell.py $? --shell zsh 2> /dev/null)"
+}
 
-        function install_powerline_precmd() {
-          for s in "${precmd_functions[@]}"; do
-            if [ "$s" = "powerline_precmd" ]; then
-              return
-            fi
-          done
-          precmd_functions+=(powerline_precmd)
-        }
+function install_powerline_precmd() {
+  for s in "${precmd_functions[@]}"; do
+    if [ "$s" = "powerline_precmd" ]; then
+      return
+    fi
+  done
+  precmd_functions+=(powerline_precmd)
+}
 
-        install_powerline_precmd
+if [ "$TERM" != "linux" ]; then
+    install_powerline_precmd
+fi
+```
 
 ### Fish:
 Redefine `fish_prompt` in ~/.config/fish/config.fish:
 
-        function fish_prompt
-            ~/powerline-shell.py $status --shell bare ^/dev/null
-        end
+```
+function fish_prompt
+    ~/powerline-shell.py $status --shell bare ^/dev/null
+end
+```
 
 # Customization
 
@@ -105,10 +139,10 @@ prompt immediately.
 ### Contributing new types of segments
 
 The `segments` directory contains python scripts which are injected as is into
-a single file `powerline-shell.py.template`. Each segment script defines a
-function that inserts one or more segments into the prompt. If you want to add a
-new segment, simply create a new file in the segments directory and add its name
-to the `config.py` file at the appropriate location.
+a single file `powerline_shell_base.py`. Each segment script defines a function
+that inserts one or more segments into the prompt. If you want to add a new
+segment, simply create a new file in the segments directory and add its name to
+the `config.py` file at the appropriate location.
 
 Make sure that your script does not introduce new globals which might conflict
 with other scripts. Your script should fail silently and run quickly in any
@@ -116,6 +150,10 @@ scenario.
 
 Make sure you introduce new default colors in `themes/default.py` for every new
 segment you create. Test your segment with this theme first.
+
+You should add tests for your segment as best you are able. Unit and
+integration tests are both welcome. Run your tests with the `nosetests` command
+after install the requirements in `dev_requirements.txt`.
 
 ### Themes
 
